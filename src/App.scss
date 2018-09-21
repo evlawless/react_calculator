@@ -1,9 +1,0 @@
-$bg_primary: #FFBBBB;
-$bg_secondary: #BBFFFF;
-
-body {
-	background: linear-gradient(to bottom right, $bg_primary, $bg_secondary);
-	background-size: 100vw 100vh;
-	background-position: top left;
-	background-attachment: fixed;
-}
