@@ -178,7 +178,8 @@ class Calculator extends React.Component {
 			this.state.currentInput.toFixed(Math.max(1, this.state.decimalPlaces - 1)) :
 			this.state.currentInput;
 
-		let display = (this.state.lhsOperand !== null ? this.state.lhsOperand + " " + this.state.operator + " " : '') + currentInputDisplay;
+		let display = (this.state.lhsOperand !== null ? this.state.lhsOperand + " " + this.state.operator + " " : '') +
+		 (currentInputDisplay === 0 ? '' : currentInputDisplay);
 
 		return (
 			<span>
