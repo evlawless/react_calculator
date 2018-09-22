@@ -232,9 +232,9 @@ class Calculator extends React.Component {
 					</div>
 				</div>
 				<br />
-				Input State: {this.state.inputState}<br />
+				{/* Input State: {this.state.inputState}<br />
 				Sign: {this.state.sign}<br />
-				Decimal Places: {this.state.decimalPlaces}<br />
+				Decimal Places: {this.state.decimalPlaces}<br /> */}
 			</span>
 		);
 	}
