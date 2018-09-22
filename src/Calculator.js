@@ -176,11 +176,11 @@ class Calculator extends React.Component {
 					<div className="calculator-controls">
 						<Button id="calculator-button-clear" value="clear" onClick={this.clear} />
 						<ButtonGroup id="operators-group">
+							<Button value="=" onClick={this.evaluate} />
 							<Button value="+" onClick={() => { this.onOperatorButtonPress('+'); }} />
 							<Button value="-" onClick={() => { this.onOperatorButtonPress('-'); }} />
 							<Button value="×" onClick={() => { this.onOperatorButtonPress('×'); }} />
 							<Button value="÷" onClick={() => { this.onOperatorButtonPress('÷'); }} />
-							<Button value="=" onClick={this.evaluate} />
 						</ButtonGroup>
 						<ButtonGroup id="operands-group">
 							{numPad1to9}
@@ -213,7 +213,9 @@ class Button extends React.Component {
 	render() {
 		return (
 			<button className="calculator-button" onClick={this.props.onClick} {...this.props}>
-				{this.props.value}
+				<span className="calculator-button-text">
+					{this.props.value}
+				</span>
 			</button>
 		);
 	}
