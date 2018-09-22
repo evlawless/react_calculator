@@ -1,7 +1,6 @@
 import React from 'react';
 import { hot } from "react-hot-loader";
 import "./Calculator.scss";
-const inputState = Object.freeze({ integer: 1, decimal: 2, display: 3 });
 
 // borrowed from http://www.jacklmoore.com/notes/rounding-in-javascript/
 // I have to assume jacklmoore is macklemore's brother
@@ -9,7 +8,13 @@ function round(value, decimals) {
 	return Number(Math.round(value + 'e' + decimals) + 'e-' + decimals);
 }
 
+//enum objects, for clarity
+const inputState = Object.freeze({ integer: 1, decimal: 2, display: 3 });
+const sign = Object.freeze({ positive: 1, negative: -1 });
 
+//this is my calculator object
+//i used it to get more familiar with react and also
+//to play with the idea of state machines
 class Calculator extends React.Component {
 	constructor(props) {
 		super(props);
@@ -18,7 +23,7 @@ class Calculator extends React.Component {
 		this.clearState = {
 			currentInput: 0,
 			inputState: inputState.integer,
-			sign: 1,
+			sign: sign.positive,
 			decimalPlaces: 1,
 			lhsOperand: null,
 			operator: null
@@ -35,10 +40,13 @@ class Calculator extends React.Component {
 	}
 
 	clear() {
+		//resets the state back to initial
 		this.setState(this.clearState);
 	}
 
 	evaluate() {
+		//you need a left hand value and an operator to evaluate the expression
+		//the input value is always at least 0
 		if (this.state.lhsOperand !== null && this.state.operator != null) {
 			this.setState((state) => {
 				let result;
@@ -70,12 +78,17 @@ class Calculator extends React.Component {
 	}
 
 	invertValue() {
+		//inverts the sign of the current value, and also inverts the current value
+		//gotta do both, because of the way my input logic works
 		this.setState((state, props) => {
 			return { currentInput: state.currentInput * -1, sign: state.sign * -1 }
 		});
 	}
 
 	inputInteger(input) {
+		//value * 10 moves all digits one column left
+		// + input adds the new digit to the ones column
+		//input * sign, to handle negatives
 		this.setState((state) => {
 			let newValue = state.currentInput * 10 + (input * state.sign);
 			return { currentInput: newValue }
@@ -83,6 +96,9 @@ class Calculator extends React.Component {
 	}
 
 	inputDecimal(input) {
+		//input / 10^decimalPlaces, where decimal places is just a count of how many digits you've put in
+		//ends up being input / 10|100|1000|10000|etc
+		//again, input * sign, for negative values
 		this.setState((state) => {
 			let newValue = state.currentInput + ((input * state.sign) / Math.pow(10, state.decimalPlaces));
 			newValue = round(newValue, state.decimalPlaces);
@@ -91,6 +107,10 @@ class Calculator extends React.Component {
 	}
 
 	inputOperator(input) {
+		//if there isn't already a left hand value
+		//move current value to left hand
+		//set operator to input
+		//start inputting right hand value
 		if (null === this.state.lhsOperand) {
 			this.setState((state) => {
 				return {
@@ -100,6 +120,9 @@ class Calculator extends React.Component {
 				};
 			})
 		} else {
+			//if there is already a full expression when you hit an operator
+			//evaluate it, assign the output to the left hand value
+			//continue as if there was already a left hand value
 			this.evaluate();
 			this.setState((state)=>{
 				return {
@@ -112,6 +135,8 @@ class Calculator extends React.Component {
 		}
 	}
 
+	// STATE DEPENDANT LOGIC FUNCTIONS //
+	// SEE state_diagram.png FOR A MAP OF THIS LOGIC // 
 	onOperandButtonPress(input) {
 		switch (this.state.inputState) {
 			case inputState.integer:
@@ -170,14 +195,18 @@ class Calculator extends React.Component {
 	}
 
 	render() {
+		// populate the numpad
 		let numPad1to9 = [1, 2, 3, 4, 5, 6, 7, 8, 9].map((value, idx) => {
 			return <Button key={value} value={value} onClick={() => { this.onOperandButtonPress(value); }} />
 		});
 
+		//this is really to make it display 0.0 instead of just 0
 		let currentInputDisplay = this.state.inputState == inputState.decimal ?
 			this.state.currentInput.toFixed(Math.max(1, this.state.decimalPlaces - 1)) :
 			this.state.currentInput;
 
+		//if there is an expression to display, show it
+		//otherwise, just display the current value
 		let display = (this.state.lhsOperand !== null ? this.state.lhsOperand + " " + this.state.operator + " " : '') +
 		 (currentInputDisplay === 0 ? '' : currentInputDisplay);
 
@@ -211,6 +240,9 @@ class Calculator extends React.Component {
 	}
 }
 
+// COMPONENTS FOR DISPLAYING PARTS OF THE CALCULATOR //
+// COULD THESE HAVE BEEN FUNCTIONS? YEAH //
+// BUT THEY'RE NOT //
 class Display extends React.Component {
 	render() {
 		return (
@@ -243,5 +275,5 @@ class ButtonGroup extends React.Component {
 	}
 }
 
-
+//export hot for hotloader, to save me literally seconds every day
 export default hot(module)(Calculator);
