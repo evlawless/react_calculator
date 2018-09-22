@@ -9,6 +9,7 @@ function round(value, decimals) {
 	return Number(Math.round(value + 'e' + decimals) + 'e-' + decimals);
 }
 
+
 class Calculator extends React.Component {
 	constructor(props) {
 		super(props);
@@ -94,6 +95,16 @@ class Calculator extends React.Component {
 			this.setState((state) => {
 				return {
 					lhsOperand: state.currentInput,
+					currentInput: 0,
+					operator: input
+				};
+			})
+		} else {
+			this.evaluate();
+			this.setState((state)=>{
+				return {
+					lhsOperand: state.currentInput,
+					inputState: inputState.integer,
 					currentInput: 0,
 					operator: input
 				};
@@ -193,7 +204,7 @@ class Calculator extends React.Component {
 				<br />
 				Input State: {this.state.inputState}<br />
 				Sign: {this.state.sign}<br />
-				Decimal Places: {this.state.decimalPlaces}
+				Decimal Places: {this.state.decimalPlaces}<br />
 			</span>
 		);
 	}
