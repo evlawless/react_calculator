@@ -127,7 +127,12 @@ class Calculator extends React.Component {
 				break;
 			case inputState.display:
 				this.setState({
-					inputState: inputState.decimal
+					currentInput: 0,
+					inputState: inputState.decimal,
+					sign: 1,
+					decimalPlaces: 1,
+					lhsOperand: null,
+					operator: null
 				});
 				break;
 		}
