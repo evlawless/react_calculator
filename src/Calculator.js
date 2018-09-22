@@ -1,147 +1,195 @@
 import React from 'react';
 import { hot } from "react-hot-loader";
 import "./Calculator.scss";
+const inputState = Object.freeze({ integer: 1, decimal: 2, display: 3 });
+
+// borrowed from http://www.jacklmoore.com/notes/rounding-in-javascript/
+// I have to assume jacklmoore is macklemore's brother
+function round(value, decimals) {
+	return Number(Math.round(value + 'e' + decimals) + 'e-' + decimals);
+}
 
 class Calculator extends React.Component {
 	constructor(props) {
 		super(props);
 
-		this.state = {
-			lhsOperand: 0,
-			rhsOperand: null,
+		//state stuff
+		this.clearState = {
+			currentInput: 0,
+			inputState: inputState.integer,
+			sign: 1,
+			decimalPlaces: 1,
+			lhsOperand: null,
 			operator: null
 		};
+		this.state = this.clearState;
 
+		//callbacks
 		this.clear = this.clear.bind(this);
 		this.evaluate = this.evaluate.bind(this);
-		this.operandInput = this.operandInput.bind(this);
-		this.operatorInput = this.operatorInput.bind(this);
-
+		this.onOperandButtonPress = this.onOperandButtonPress.bind(this);
+		this.onOperatorButtonPress = this.onOperatorButtonPress.bind(this);
+		this.invertValue = this.invertValue.bind(this);
+		this.onDecimalButtonPress = this.onDecimalButtonPress.bind(this);
 	}
 
 	clear() {
-		this.setState({
-			lhsOperand: 0,
-			rhsOperand: null,
-			operator: null
-		});
+		this.setState(this.clearState);
 	}
 
 	evaluate() {
-		if (this.state.rhsOperand) {
+		if (this.state.lhsOperand !== null && this.state.operator != null) {
+			this.setState((state) => {
+				let result;
+				switch (state.operator) {
+					case '+':
+						result = state.lhsOperand + state.currentInput;
+						break;
+					case '-':
+						result = state.lhsOperand - state.currentInput;
+						break;
+					case '×':
+						result = state.lhsOperand * state.currentInput;
+						break;
+					case '÷':
+						result = state.lhsOperand / state.currentInput;
+						break;
+				}
 
-			let evaluatedValue = 0;
-			switch (this.state.operator) {
-				case '+':
-					evaluatedValue = parseFloat(this.state.lhsOperand) + parseFloat(this.state.rhsOperand);
-					break;
-				case '-':
-					evaluatedValue = parseFloat(this.state.lhsOperand) - parseFloat(this.state.rhsOperand);
-					break;
-				case '×':
-					evaluatedValue = parseFloat(this.state.lhsOperand) * parseFloat(this.state.rhsOperand);
-					break;
-				case '÷':
-					evaluatedValue = parseFloat(this.state.lhsOperand) / parseFloat(this.state.rhsOperand);
-					break;
-			}
-
-			this.setState({
-				lhsOperand: evaluatedValue,
-				rhsOperand: null,
-				operator: null
+				return {
+					currentInput: result,
+					inputState: inputState.display,
+					sign: 1,
+					decimalPlaces: 1,
+					lhsOperand: null,
+					operator: null
+				}
 			});
 		}
 	}
 
-	appendInput(current, input) {
-		if (input == '.') {
-			if (!current) {
-				return '0.0';
-			} else {
-				console.log(current.toString());
-				if (current.toString().indexOf('.') == -1) {
-					return current + '.0';
-				} else {
-					return current;
-				}
-			}
-		}
-
-		if (!current) {
-			return input;
-		}
-
-		if (current.toString().indexOf('.') != -1) {
-			
-		}
-
-
+	invertValue() {
+		this.setState((state, props) => {
+			return { currentInput: state.currentInput * -1, sign: state.sign * -1 }
+		});
 	}
 
-	operandInput(input) {
-		//if the operator is populated, input goes onto the rhs, otherwise lhs
+	inputInteger(input) {
 		this.setState((state) => {
-			if (this.state.operator) {
-				return {
-					rhsOperand: this.appendInput(state.rhsOperand, input)
-				}
-			} else {
-				return {
-					lhsOperand: this.appendInput(state.lhsOperand, input)
-				}
-			}
+			let newValue = state.currentInput * 10 + (input * state.sign);
+			return { currentInput: newValue }
 		});
-
 	}
 
-	operatorInput(input) {
-		//if there is already an operator
-		if (this.state.operator) {
-			//if we have a right hand side also
-			if (this.state.rhsOperand != null) {
-				//evaluate the current expression and then add the new operator
-				let self = this;
-				this.evaluate();
-			}
-		}
-		//if there isn't an operator, set it to the input
-		this.setState({
-			operator: input
+	inputDecimal(input) {
+		this.setState((state) => {
+			let newValue = state.currentInput + ((input * state.sign) / Math.pow(10, state.decimalPlaces));
+			newValue = round(newValue, state.decimalPlaces);
+			return { currentInput: newValue, decimalPlaces: (state.decimalPlaces + 1) }
 		});
+	}
+
+	inputOperator(input) {
+		if (null === this.state.lhsOperand) {
+			this.setState((state) => {
+				return {
+					lhsOperand: state.currentInput,
+					currentInput: 0,
+					operator: input
+				};
+			})
+		}
+	}
+
+	onOperandButtonPress(input) {
+		switch (this.state.inputState) {
+			case inputState.integer:
+				this.inputInteger(input);
+				break;
+			case inputState.decimal:
+				this.inputDecimal(input);
+				break;
+			case inputState.display:
+				this.clear();
+				this.inputInteger(input);
+				break;
+		}
+	}
+
+	onDecimalButtonPress() {
+		switch (this.state.inputState) {
+			case inputState.integer:
+				this.setState({
+					inputState: inputState.decimal
+				});
+				break;
+			case inputState.decimal:
+				break;
+			case inputState.display:
+				this.setState({
+					inputState: inputState.decimal
+				});
+				break;
+		}
+	}
+
+	onOperatorButtonPress(input) {
+		switch (this.state.inputState) {
+			case inputState.integer:
+				this.inputOperator(input);
+				break;
+			case inputState.decimal:
+				this.setState({
+					inputState: inputState.integer
+				});
+				this.inputOperator(input);
+				break;
+			case inputState.display:
+				this.setState({
+					inputState: inputState.integer
+				});
+				this.inputOperator(input);
+				break;
+		}
 	}
 
 	render() {
-		let renderValue = [this.state.lhsOperand, this.state.operator, this.state.rhsOperand].join(' ');
+		let numPad1to9 = [1, 2, 3, 4, 5, 6, 7, 8, 9].map((value, idx) => {
+			return <Button key={value} value={value} onClick={() => { this.onOperandButtonPress(value); }} />
+		});
+
+		let currentInputDisplay = this.state.inputState == inputState.decimal ?
+			this.state.currentInput.toFixed(Math.max(1, this.state.decimalPlaces - 1)) :
+			this.state.currentInput;
+
+		let display = (this.state.lhsOperand !== null ? this.state.lhsOperand + " " + this.state.operator + " " : '') + currentInputDisplay;
 
 		return (
-			<div className="calculator">
-				<Display value={renderValue} />
-				<div className="calculator-controls">
-					<Button id="calculator-button-clear" value="clear" onClick={this.clear} />
-					<ButtonGroup id="operators-group">
-						<Button value="+" onClick={() => { this.operatorInput('+'); }} />
-						<Button value="-" onClick={() => { this.operatorInput('-'); }} />
-						<Button value="×" onClick={() => { this.operatorInput('×'); }} />
-						<Button value="÷" onClick={() => { this.operatorInput('÷'); }} />
-						<Button value="=" onClick={this.evaluate} />
-					</ButtonGroup>
-					<ButtonGroup id="operands-group">
-						<Button value="1" onClick={() => { this.operandInput(1); }} />
-						<Button value="2" onClick={() => { this.operandInput(2); }} />
-						<Button value="3" onClick={() => { this.operandInput(3); }} />
-						<Button value="4" onClick={() => { this.operandInput(4); }} />
-						<Button value="5" onClick={() => { this.operandInput(5); }} />
-						<Button value="6" onClick={() => { this.operandInput(6); }} />
-						<Button value="7" onClick={() => { this.operandInput(7); }} />
-						<Button value="8" onClick={() => { this.operandInput(8); }} />
-						<Button value="9" onClick={() => { this.operandInput(9); }} />
-						<Button value="" />
-						<Button value="0" onClick={() => { this.operandInput(0); }} />
-						<Button value="." onClick={() => { this.operandInput('.'); }} />
-					</ButtonGroup>
+			<span>
+				<div className="calculator">
+					<Display value={display} />
+					<div className="calculator-controls">
+						<Button id="calculator-button-clear" value="clear" onClick={this.clear} />
+						<ButtonGroup id="operators-group">
+							<Button value="+" onClick={() => { this.onOperatorButtonPress('+'); }} />
+							<Button value="-" onClick={() => { this.onOperatorButtonPress('-'); }} />
+							<Button value="×" onClick={() => { this.onOperatorButtonPress('×'); }} />
+							<Button value="÷" onClick={() => { this.onOperatorButtonPress('÷'); }} />
+							<Button value="=" onClick={this.evaluate} />
+						</ButtonGroup>
+						<ButtonGroup id="operands-group">
+							{numPad1to9}
+							<Button value="±" onClick={this.invertValue} />
+							<Button value="0" onClick={() => { this.onOperandButtonPress(0); }} />
+							<Button value="." onClick={this.onDecimalButtonPress} />
+						</ButtonGroup>
+					</div>
 				</div>
-			</div>
+				<br />
+				Input State: {this.state.inputState}<br />
+				Sign: {this.state.sign}<br />
+				Decimal Places: {this.state.decimalPlaces}
+			</span>
 		);
 	}
 }
