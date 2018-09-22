@@ -7,3 +7,5 @@ after running into implementation issues surrounding decimal inputs, i was point
 
 this has become a project for learning about state machines and also getting some practice with react
 
+![state diagram](react_calculator/state_diagram.png)
+    
