@@ -8,5 +8,7 @@ After running into implementation issues surrounding decimal inputs, i was point
 
 This has become a project for learning about state machines and also getting some practice with react.
 
+check it out at [evanlawless.com/calculator.html](http://evanlawless.com/calculator.html)
+
 ![state diagram](https://raw.githubusercontent.com/evlawless/react_calculator/master/state_diagram.png)
     
